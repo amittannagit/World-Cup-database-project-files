@@ -100,5 +100,5 @@ The project was completed in three main parts:
 - Completed a set of queries to extract specific information from the database and verified against expected outputs.
 
 This project showcases skills in database design, data manipulation, and SQL query formulation.
-```
+
 
