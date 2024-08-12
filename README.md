@@ -1,104 +1,120 @@
-```markdown
-# World Cup Database Project
+# World Cup Database
 
-This project is designed to demonstrate skills in creating, populating, and querying a PostgreSQL database. The data consists of World Cup game results from the final three rounds since 2014. This `README.md` file provides an overview of how the project was completed, including database creation, data insertion, and query execution.
+> Welcome to the World Cup Database project!
 
-## Project Overview
+## Overview
 
-The project was completed in three main parts:
+In this project, you will create a database to manage World Cup game data, insert data from a CSV file, and run queries to retrieve specific information. The project is divided into three parts:
 
-1. **Create the Database**:
-   - Create the `worldcup` database and necessary tables.
-2. **Insert Data**:
-   - Populate the database with data from `games.csv`.
-3. **Query the Database**:
-   - Write SQL queries to extract information from the database and match the provided output specifications.
+1. **Create the Database**: Set up your database structure.
+2. **Insert Data**: Populate the database with data from `games.csv`.
+3. **Query the Database**: Write queries to retrieve and display specific information.
 
-## Instructions and Steps
+## Part 1: Create the Database
 
-### Part 1: Create the Database
-
-1. **Log into PostgreSQL**:
+1. **Log into PostgreSQL**: Start by logging into the PostgreSQL interactive terminal with:
    ```bash
    psql --username=freecodecamp --dbname=postgres
    ```
 
-2. **Create the Database**:
-   ```sql
-   CREATE DATABASE worldcup;
-   ```
+2. **Create the `worldcup` Database**: Create a new database named `worldcup`.
 
-3. **Connect to the Database**:
+3. **Connect to the `worldcup` Database**:
    ```bash
    \c worldcup
    ```
 
-4. **Create the Tables**:
+4. **Create Tables**:
+   - **Teams Table**: Should include `team_id` (SERIAL PRIMARY KEY) and `name` (UNIQUE).
+   - **Games Table**: Should include `game_id` (SERIAL PRIMARY KEY), `year` (INT), `round` (VARCHAR), `winner_id` (FOREIGN KEY), `opponent_id` (FOREIGN KEY), `winner_goals` (INT), and `opponent_goals` (INT).
+
+   Ensure all columns have the `NOT NULL` constraint.
+
    ```sql
    CREATE TABLE teams (
-     team_id SERIAL PRIMARY KEY,
-     name VARCHAR(50) UNIQUE NOT NULL
+       team_id SERIAL PRIMARY KEY,
+       name VARCHAR(255) UNIQUE NOT NULL
    );
 
    CREATE TABLE games (
-     game_id SERIAL PRIMARY KEY,
-     year INT NOT NULL,
-     round VARCHAR(50) NOT NULL,
-     winner_id INT REFERENCES teams(team_id) NOT NULL,
-     opponent_id INT REFERENCES teams(team_id) NOT NULL,
-     winner_goals INT NOT NULL,
-     opponent_goals INT NOT NULL
+       game_id SERIAL PRIMARY KEY,
+       year INT NOT NULL,
+       round VARCHAR(50) NOT NULL,
+       winner_id INT REFERENCES teams(team_id),
+       opponent_id INT REFERENCES teams(team_id),
+       winner_goals INT NOT NULL,
+       opponent_goals INT NOT NULL
    );
    ```
 
-### Part 2: Insert Data
+## Part 2: Insert Data
 
-1. **Script to Insert Data (`insert_data.sh`)**:
-   - This script processes `games.csv` to populate the `teams` and `games` tables.
-   - It inserts unique teams into the `teams` table and then inserts game results into the `games` table.
+1. **Complete the `insert_data.sh` Script**:
+   - This script will read from `games.csv` and insert data into the `teams` and `games` tables.
+   - Ensure that each unique team is added to the `teams` table.
+   - Insert each row from `games.csv` into the `games` table, using the correct `team_id` values from the `teams` table.
 
-2. **Run the Insert Data Script**:
+   **Note**: Ensure the script runs efficiently and avoids multiple queries where possible.
+
    ```bash
-   ./insert_data.sh
+   #!/bin/bash
+
+   # Define PSQL variable
+   PSQL="psql --username=freecodecamp --dbname=worldcup -t --no-align -c"
+
+   # Clear existing data
+   $($PSQL "TRUNCATE TABLE games, teams;")
+
+   # Read data from CSV and insert into database
+   # ...
    ```
 
-### Part 3: Query the Database
+2. **Check Data Insertion**:
+   - After running the script, verify that there are 24 rows in the `teams` table and 32 rows in the `games` table.
 
-1. **Script for Queries (`queries.sh`)**:
-   - This script includes SQL queries to fetch various pieces of information from the database.
-   - Each query is designed to match the expected output specified in `expected_output.txt`.
+## Part 3: Query the Database
 
-2. **Run the Queries Script**:
+1. **Complete the `queries.sh` Script**:
+   - This script should include queries to retrieve specific data and match the output with `expected_output.txt`.
+
+   **Example Queries**:
    ```bash
-   ./queries.sh
+   #!/bin/bash
+
+   PSQL="psql --username=freecodecamp --dbname=worldcup --no-align --tuples-only -c"
+
+   echo -e "\nTotal number of goals in all games from winning teams:"
+   echo "$($PSQL "SELECT SUM(winner_goals) FROM games")"
+
+   echo -e "\nTotal number of goals in all games from both teams combined:"
+   echo "$($PSQL "SELECT SUM(winner_goals + opponent_goals) FROM games")"
+
+   # Add more queries as needed
    ```
 
-### Files Included
+2. **Verify Output**:
+   - Ensure that the output of each query matches exactly what is in the `expected_output.txt` file.
 
-- **`worldcup.sql`**: Contains SQL commands to recreate the database schema and insert data.
-- **`insert_data.sh`**: Bash script to read `games.csv` and insert data into the database.
-- **`queries.sh`**: Bash script containing SQL queries to retrieve data from the database.
-- **`games.csv`**: CSV file with data about World Cup games.
+## Additional Notes
 
-### Final Steps
+- **Database Dump**: If you need to save your progress or transfer your database, use the following command:
+  ```bash
+  pg_dump -cC --inserts -U freecodecamp worldcup > worldcup.sql
+  ```
 
-1. **Make Scripts Executable**:
-   Ensure the script files have executable permissions:
-   ```bash
-   chmod +x insert_data.sh queries.sh
-   ```
+- **Restoring Database**: To rebuild the database from the dump file:
+  ```bash
+  psql -U postgres < worldcup.sql
+  ```
 
-2. **Push to GitHub**:
-   - Uploaded the files to a public repository on GitHub.
-   - Repository URL: [https://github.com/amittannagit/World-Cup-database-project-files](https://github.com/amittannagit/World-Cup-database-project-files)
+- **Permissions**: Ensure that both `insert_data.sh` and `queries.sh` have executable permissions:
+  ```bash
+  chmod +x insert_data.sh queries.sh
+  ```
 
-### Summary
+## Submission
 
-- Created a PostgreSQL database named `worldcup`.
-- Designed and implemented the `teams` and `games` tables.
-- Developed and ran a script to populate the database with data from `games.csv`.
-- Completed a set of queries to extract specific information from the database and verified against expected outputs.
-
-This project showcases skills in database design, data manipulation, and SQL query formulation.
-
+- Save your progress on freeCodeCamp.org.
+- Upload the `worldcup.sql` file, as well as the final versions of `insert_data.sh` and `queries.sh` to a public repository.
+- Submit the URL to the repository on freeCodeCamp.org.
 
